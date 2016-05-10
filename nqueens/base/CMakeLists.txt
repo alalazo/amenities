@@ -13,5 +13,33 @@ IF( CMAKE_HOST_WIN32 )
   SET(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 ENDIF()
 
+#### Default build type
+IF( NOT CMAKE_BUILD_TYPE AND CMAKE_HOST_UNIX )
+  SET (CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING
+      "Choose the type of build, RelWithDebInfo will be the default." FORCE)
+ENDIF()
+
+#### Compiler flags
+IF( CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  SET(CXX_WARNING_LEVEL "-Wall -Werror -pedantic")
+ELSEIF( CMAKE_CXX_COMPILER_ID STREQUAL "Clang" )
+  SET(CXX_WARNING_LEVEL "-Wall -Werror -pedantic -Wdocumentation")
+ELSEIF( CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" )
+  SET(CXX_WARNING_LEVEL "/W4")
+ELSE()
+  MESSAGE(ERROR "Detected an unsupported compiler")
+ENDIF()
+
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_WARNING_LEVEL}")
+
+#### Output log
+STRING( TOUPPER "CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}" SPECIFIC_BUILD)
+MESSAGE("############ COMPILER OPTIONS ############")
+MESSAGE("Compiler ID : ${CMAKE_CXX_COMPILER_ID}")
+MESSAGE("Compiler path : ${CMAKE_CXX_COMPILER}")
+MESSAGE("Compiler version : ${CMAKE_CXX_COMPILER_VERSION}")
+MESSAGE("CXX flags (base) : ${CMAKE_CXX_FLAGS}")
+MESSAGE("############ COMPILER OPTIONS ############")
+
 ADD_EXECUTABLE(nqueens main.cxx)
 
