@@ -32,6 +32,8 @@ ENDIF()
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_WARNING_LEVEL}")
 
+FIND_PACKAGE( Boost REQUIRED COMPONENTS program_options )
+
 #### Output log
 STRING( TOUPPER "CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}" SPECIFIC_BUILD)
 MESSAGE("############ COMPILER OPTIONS ############")
@@ -42,4 +44,13 @@ MESSAGE("CXX flags (base) : ${CMAKE_CXX_FLAGS}")
 MESSAGE("############ COMPILER OPTIONS ############")
 
 ADD_EXECUTABLE(nqueens main.cxx)
-
+TARGET_INCLUDE_DIRECTORIES(
+  nqueens
+  PUBLIC
+  ${Boost_INCLUDE_DIRS}
+)
+TARGET_LINK_LIBRARIES(
+  nqueens
+  PUBLIC
+  ${Boost_LIBRARIES}
+)
