@@ -27,3 +27,4 @@ build*
 *.exe
 *.out
 *.app
+/nqueens/nqueens-base/

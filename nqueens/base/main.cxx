@@ -28,8 +28,8 @@ bool is_valid_placement(const Placement& placement) {
 }
 
 int main(int argc, char** argv) {
-    // Handle input
     try {
+        // Handle input
         auto n = 0;
         auto description = po::options_description("Allowed options:");
         description.add_options()
