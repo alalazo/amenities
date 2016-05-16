@@ -1,7 +1,7 @@
 CMAKE_MINIMUM_REQUIRED( VERSION 3.2.0 )
 
 PROJECT(
-  Amenietes
+  amenietes
   VERSION 1.0
   LANGUAGES CXX
 )
@@ -32,6 +32,7 @@ ENDIF()
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_WARNING_LEVEL}")
 
+#### Boost program options will be used to manage the CLI
 FIND_PACKAGE( Boost REQUIRED COMPONENTS program_options )
 
 #### Output log
@@ -45,3 +46,4 @@ MESSAGE("############ COMPILER OPTIONS ############")
 
 #### Subdirectories
 ADD_SUBDIRECTORY(eratosthenes)
+ADD_SUBDIRECTORY(nqueens)

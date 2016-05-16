@@ -1,13 +1,11 @@
-
-
-ADD_EXECUTABLE(eratosthenes main.cxx)
+ADD_EXECUTABLE(nqueens main.cxx)
 TARGET_INCLUDE_DIRECTORIES(
-  eratosthenes
+  nqueens
   PUBLIC
   ${Boost_INCLUDE_DIRS}
 )
 TARGET_LINK_LIBRARIES(
-  eratosthenes
+  nqueens
   PUBLIC
   ${Boost_LIBRARIES}
 )
