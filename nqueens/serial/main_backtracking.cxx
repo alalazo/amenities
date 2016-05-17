@@ -41,6 +41,11 @@ public:
         m_to_be_placed.erase( m_to_be_placed.begin() + ii );
     }
     
+    void undo_try_at(Index ii) {
+        m_to_be_placed.insert(m_to_be_placed.begin() + ii, m_placements.back());
+        m_placements.pop_back();
+    }
+    
     bool is_final() const {
         return m_to_be_placed.empty();
     }
@@ -68,29 +73,29 @@ std::ostream& operator<<(std::ostream& ss, const NQueensBoard& board) {
     return ss;
 }
 
-long long unsigned int explore_and_count(const NQueensBoard& current){
+long long unsigned int explore_and_count(NQueensBoard& board){
     
     auto count = 0ull;
-    auto remaining = current.remaining_positions();
+    auto remaining = board.remaining_positions();
 #ifndef NDEBUG
-    std::cout << current << std::endl;
+    std::cout << board << std::endl;
 #endif
     for(auto ii = 0u; ii < remaining.size(); ++ii) {
-        auto next = NQueensBoard(current);
-        next.try_remaining_at(ii);
+        board.try_remaining_at(ii);
         // If the board is valid
-        if (next.is_valid()) {
-            if(next.is_final()) {
+        if (board.is_valid()) {
+            if(board.is_final()) {
                 // I have reached a valid leaf
 #ifndef NDEBUG
-                std::cout << next << " **** " << std::endl;
+                std::cout << board << " **** " << std::endl;
 #endif
                 count += 1;
-                continue;
+                
             } else {
-               count += explore_and_count(next);
+               count += explore_and_count(board);
             }
         }
+        board.undo_try_at(ii);
     }
     return count;
 }
