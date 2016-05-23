@@ -5,26 +5,31 @@
 #include <iostream>
 #include <vector>
 
-using Index = unsigned short int;
+using Index = short int;
 using Placement = std::vector<Index>;
 
 namespace po = boost::program_options;
 
 class NQueensBoard {
 public:
-    explicit NQueensBoard(Index n) : m_to_be_placed(n, 0) {
-        std::iota(m_to_be_placed.begin(), m_to_be_placed.end(), 0);
-        m_placements.reserve(n);        
+    explicit NQueensBoard(Index n) : m_size(n), m_placements(n) {
     }
 
     NQueensBoard(const NQueensBoard& other) = default;
     
+    Index size() const {
+        return m_size;
+    }
+    
     bool is_valid() const {
-        for (auto ii = 0u; ii < m_placements.size(); ++ii) {
-            auto value = m_placements[ii];
-            for (auto jj = 0u; jj < m_placements.size(); ++jj) {
-                auto d = std::abs(jj - ii); // Distance of the current row from the target value
-                auto current = m_placements[jj];
+        auto value = Index(0);
+        auto current = Index(0);
+        auto d = Index(0);
+        for (auto ii = 0; ii < m_current_row; ++ii) {
+            value = m_placements[ii];
+            for (auto jj = 0; jj < m_current_row; ++jj) {
+                d = std::abs(jj - ii); // Distance of the current row from the target value
+                current = m_placements[jj];
                 if (d == 0) { // Don't compare a row with itself
                     continue;
                 }
@@ -36,52 +41,58 @@ public:
         return true;
     }
     
-    void try_remaining_at(Index ii) {
-        m_placements.push_back(m_to_be_placed[ii]);
-        m_to_be_placed.erase( m_to_be_placed.begin() + ii );
+    bool already_placed(Index ii) const {
+        for (auto jj = 0; jj < m_current_row; ++jj) {
+            if (m_placements[jj] == ii) {
+                return true;
+            }
+        }
+        return false;
     }
     
-    void undo_try_at(Index ii) {
-        m_to_be_placed.insert(m_to_be_placed.begin() + ii, m_placements.back());
-        m_placements.pop_back();
+    void try_at(Index ii) {
+        m_placements[m_current_row] = ii;
+        ++m_current_row;
+    }
+    
+    void pop_back() {
+        --m_current_row;
     }
     
     bool is_final() const {
-        return m_to_be_placed.empty();
+        return m_current_row == m_size;
     }
-    
-    const std::vector<Index> & remaining_positions() const {
-        return m_to_be_placed;
-    }
-    
+        
     friend std::ostream& operator<<(std::ostream& ss, const NQueensBoard& board);
     
 private:
-    std::vector<Index> m_to_be_placed;
+    Index m_size;
+    Index m_current_row;
     std::vector<Index> m_placements;
 };
 
 std::ostream& operator<<(std::ostream& ss, const NQueensBoard& board) {
-    for(const auto& x : board.m_placements){
-        ss << x << "\t";
-    }
-    std::for_each(board.m_to_be_placed.cbegin(), board.m_to_be_placed.cend(),
-    [&](const Index& x){
-         ss << "X\t";
-    }
-    );
+    for(auto ii = 0; ii < board.m_size; ++ii) {
+        if (ii >= board.m_current_row) {
+            ss << "X\t";
+        } else {
+            ss << board.m_placements[ii] << "\t";
+        }
+    }    
     return ss;
 }
 
 long long unsigned int explore_and_count(NQueensBoard& board){
     
     auto count = 0ull;
-    auto remaining = board.remaining_positions();
 #ifndef NDEBUG
     std::cout << board << std::endl;
 #endif
-    for(auto ii = 0u; ii < remaining.size(); ++ii) {
-        board.try_remaining_at(ii);
+    for(auto ii = 0; ii < board.size(); ++ii) {
+        if (board.already_placed(ii)) {
+            continue;
+        }
+        board.try_at(ii);
         // If the board is valid
         if (board.is_valid()) {
             if(board.is_final()) {
@@ -89,13 +100,13 @@ long long unsigned int explore_and_count(NQueensBoard& board){
 #ifndef NDEBUG
                 std::cout << board << " **** " << std::endl;
 #endif
-                count += 1;
+                ++count;
                 
             } else {
                count += explore_and_count(board);
             }
         }
-        board.undo_try_at(ii);
+        board.pop_back();
     }
     return count;
 }
