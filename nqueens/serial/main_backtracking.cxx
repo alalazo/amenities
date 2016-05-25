@@ -12,51 +12,53 @@ namespace po = boost::program_options;
 
 class NQueensBoard {
 public:
-    explicit NQueensBoard(Index n) : m_size(n), m_placements(n) {
+    explicit NQueensBoard(Index n) : 
+    m_size(n), m_placements(n), m_placed(n, false)
+    , m_diagonal_left(2*n, false), m_diagonal_right(2*n, false) {
     }
 
     NQueensBoard(const NQueensBoard& other) = default;
-    
+
     Index size() const {
         return m_size;
     }
     
-    bool is_valid() const {
-        auto value = Index(0);
-        auto current = Index(0);
-        auto d = Index(0);
-        for (auto ii = 0; ii < m_current_row; ++ii) {
-            value = m_placements[ii];
-            for (auto jj = 0; jj < m_current_row; ++jj) {
-                d = std::abs(jj - ii); // Distance of the current row from the target value
-                current = m_placements[jj];
-                if (d == 0) { // Don't compare a row with itself
-                    continue;
-                }
-                if ((value + d == current) || (value - d == current)) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-    
-    bool already_placed(Index ii) const {
-        for (auto jj = 0; jj < m_current_row; ++jj) {
-            if (m_placements[jj] == ii) {
-                return true;
-            }
-        }
-        return false;
+    bool is_invalid_placement(Index ii) const {
+        auto left = ii - m_current_row + m_size;
+        auto right = ii + m_current_row;
+        
+        auto under_threat = ( 
+        m_placed[ii] || // Same row or column
+        m_diagonal_left[left] || // Threat from left diagonal
+        m_diagonal_right[right] // Threat from right diagonal
+        );
+        
+        return under_threat;
     }
     
     void try_at(Index ii) {
+        // Place the value of the column in the current row
         m_placements[m_current_row] = ii;
-        ++m_current_row;
+        // Mark the horizontal and vertical place holders
+        m_placed[ii] = true;
+        // Mark the diagonal place holders
+        auto left = ii - m_current_row + m_size;
+        auto right = ii + m_current_row;
+        m_diagonal_left[left] = true;
+        m_diagonal_right[right] = true;        
+        // Proceed to the next row
+        ++m_current_row;        
     }
     
-    void pop_back() {
+    void pop_back(Index ii) {
         --m_current_row;
+        // Un-mark horizontal and vertical place holders
+        m_placed[ii] = false;
+        // Un-mark the diagonal place holders
+        auto left = ii - m_current_row + m_size;
+        auto right = ii + m_current_row;
+        m_diagonal_left[left] = false;
+        m_diagonal_right[right] = false;        
     }
     
     bool is_final() const {
@@ -69,6 +71,9 @@ private:
     Index m_size;
     Index m_current_row;
     std::vector<Index> m_placements;
+    std::vector<bool> m_placed;
+    std::vector<bool> m_diagonal_left;
+    std::vector<bool> m_diagonal_right;
 };
 
 std::ostream& operator<<(std::ostream& ss, const NQueensBoard& board) {
@@ -82,31 +87,26 @@ std::ostream& operator<<(std::ostream& ss, const NQueensBoard& board) {
     return ss;
 }
 
-long long unsigned int explore_and_count(NQueensBoard& board){
-    
+long long unsigned int explore_and_count(NQueensBoard& board) {
+
     auto count = 0ull;
 #ifndef NDEBUG
     std::cout << board << std::endl;
 #endif
-    for(auto ii = 0; ii < board.size(); ++ii) {
-        if (board.already_placed(ii)) {
+    for (auto ii = 0; ii < board.size(); ++ii) {
+        if (board.is_invalid_placement(ii)) {
             continue;
         }
         board.try_at(ii);
-        // If the board is valid
-        if (board.is_valid()) {
-            if(board.is_final()) {
-                // I have reached a valid leaf
+        if (board.is_final()) { // I have reached a valid leaf
 #ifndef NDEBUG
-                std::cout << board << " **** " << std::endl;
+            std::cout << board << " **** " << std::endl;
 #endif
-                ++count;
-                
-            } else {
-               count += explore_and_count(board);
-            }
+            ++count;
+        } else {
+            count += explore_and_count(board);
         }
-        board.pop_back();
+        board.pop_back(ii);
     }
     return count;
 }
